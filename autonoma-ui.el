@@ -1,4 +1,4 @@
-;;; autonoma-ui.el --- UI layer for Autonoma Code -*- lexical-binding: t; -*-
+;;; autonoma-ui.el --- UI layer for A6s -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2026 Autonoma AI
 
@@ -86,7 +86,7 @@
           (concat " " (propertize (format "A6s:%s" label)
                                   'face face
                                   'help-echo
-                                  (format "Autonoma: %s" status)))))
+                                  (format "A6s: %s" status)))))
   (force-mode-line-update t))
 
 ;;; RIGOR phase buffer
@@ -97,7 +97,7 @@
 (defvar autonoma-ui--phase-state nil
   "Alist of (phase-name . plist(:status :progress)) for current run.")
 
-(defconst autonoma-ui--rigor-buffer "*Autonoma RIGOR*"
+(defconst autonoma-ui--rigor-buffer "*A6s RIGOR*"
   "Name of the RIGOR progress buffer.")
 
 (defun autonoma-ui--ensure-rigor-buffer ()
@@ -114,7 +114,7 @@
     (with-current-buffer buf
       (let ((inhibit-read-only t))
         (erase-buffer)
-        (insert (propertize "Autonoma RIGOR Execution\n"
+        (insert (propertize "A6s RIGOR Execution\n"
                             'face 'autonoma-ui-header))
         (insert (make-string 40 ?-) "\n")
         (insert (format "Execution: %s\n\n"
@@ -147,12 +147,12 @@
   "Handle execution.complete event DATA."
   (let ((status (plist-get data :status))
         (artifacts (plist-get data :artifacts)))
-    (message "[autonoma] execution complete: %s" status)
+    (message "[a6s] execution complete: %s" status)
     (when artifacts
       (autonoma-ui-show-results artifacts))))
 
 (define-derived-mode autonoma-rigor-mode special-mode "A6s-RIGOR"
-  "Major mode for the Autonoma RIGOR progress buffer."
+  "Major mode for the A6s RIGOR progress buffer."
   (setq buffer-read-only t))
 
 ;;; Tasks buffer
@@ -160,7 +160,7 @@
 (defvar autonoma-ui--tasks nil
   "Cached list of background tasks.")
 
-(defconst autonoma-ui--tasks-buffer "*Autonoma Tasks*"
+(defconst autonoma-ui--tasks-buffer "*A6s Tasks*"
   "Name of the tasks buffer.")
 
 (defun autonoma-ui--render-tasks ()
@@ -170,7 +170,7 @@
       (autonoma-tasks-mode)
       (let ((inhibit-read-only t))
         (erase-buffer)
-        (insert (propertize "Autonoma Background Tasks\n"
+        (insert (propertize "A6s Background Tasks\n"
                             'face 'autonoma-ui-header))
         (insert (make-string 60 ?-) "\n")
         (if (null autonoma-ui--tasks)
@@ -195,7 +195,7 @@
          (autonoma-ui--render-tasks))))))
 
 (define-derived-mode autonoma-tasks-mode special-mode "A6s-Tasks"
-  "Major mode for the Autonoma tasks buffer."
+  "Major mode for the A6s tasks buffer."
   (setq buffer-read-only t))
 
 ;;; Results buffer with artifact apply/discard
@@ -203,7 +203,7 @@
 (defvar autonoma-ui--pending-artifacts nil
   "List of artifacts pending apply/discard in the results buffer.")
 
-(defconst autonoma-ui--results-buffer "*Autonoma Results*"
+(defconst autonoma-ui--results-buffer "*A6s Results*"
   "Name of the results buffer.")
 
 (defun autonoma-ui-show-results (artifacts)
@@ -214,7 +214,7 @@
       (autonoma-results-mode)
       (let ((inhibit-read-only t))
         (erase-buffer)
-        (insert (propertize "Autonoma Results\n" 'face 'autonoma-ui-header))
+        (insert (propertize "A6s Results\n" 'face 'autonoma-ui-header))
         (insert (make-string 60 ?-) "\n")
         (insert (format "%d artifact(s). Press [a] apply, [d] discard, [q] quit.\n\n"
                         (length artifacts)))
@@ -236,8 +236,8 @@
      autonoma-ui--pending-artifacts
      (lambda (result err)
        (if err
-           (message "[autonoma] apply failed: %s" err)
-         (message "[autonoma] applied=%d skipped=%d errors=%d"
+           (message "[a6s] apply failed: %s" err)
+         (message "[a6s] applied=%d skipped=%d errors=%d"
                   (or (plist-get result :applied) 0)
                   (or (plist-get result :skipped) 0)
                   (length (plist-get result :errors))))
@@ -260,14 +260,14 @@
   "Keymap for `autonoma-results-mode'.")
 
 (define-derived-mode autonoma-results-mode special-mode "A6s-Results"
-  "Major mode for Autonoma results buffer."
+  "Major mode for A6s results buffer."
   (setq buffer-read-only t))
 
 ;;; Transient menu
 
 ;;;###autoload
 (transient-define-prefix autonoma-transient ()
-  "Autonoma Code main menu."
+  "A6s main menu."
   ["Connection"
    ("c" "Connect" autonoma-connect)
    ("d" "Disconnect" autonoma-disconnect)
@@ -318,10 +318,10 @@
 
 ;;;###autoload
 (define-minor-mode autonoma-mode
-  "Minor mode for the Autonoma Code extension.
+  "Minor mode for the A6s extension.
 
 When enabled, shows a daemon connection indicator in the modeline,
-binds \\[autonoma-transient] to the Autonoma transient menu, and (if
+binds \\[autonoma-transient] to the A6s transient menu, and (if
 `autonoma-auto-connect' is non-nil) connects to the local daemon.
 
 \\{autonoma-mode-map}"

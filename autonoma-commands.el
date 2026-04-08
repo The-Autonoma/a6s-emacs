@@ -1,4 +1,4 @@
-;;; autonoma-commands.el --- Interactive commands for Autonoma Code -*- lexical-binding: t; -*-
+;;; autonoma-commands.el --- Interactive commands for A6s -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2026 Autonoma AI
 
@@ -55,30 +55,30 @@
 
 ;;;###autoload
 (defun autonoma-connect ()
-  "Connect to the local Autonoma CLI daemon."
+  "Connect to the local A6s CLI daemon."
   (interactive)
-  (message "[autonoma] connecting to %s:%d ..."
+  (message "[a6s] connecting to %s:%d ..."
            autonoma-daemon-host autonoma-daemon-port)
   (autonoma-api-connect
    (lambda (ok err)
      (if ok
-         (message "[autonoma] connected")
+         (message "[a6s] connected")
        (message
-        "[autonoma] connection failed: %s  |  Run `a6s code --daemon' to start the daemon"
+        "[a6s] connection failed: %s  |  Run `a6s code --daemon' to start the daemon"
         err)))))
 
 ;;;###autoload
 (defun autonoma-disconnect ()
-  "Disconnect from the Autonoma daemon."
+  "Disconnect from the A6s daemon."
   (interactive)
   (autonoma-api-disconnect)
-  (message "[autonoma] disconnected"))
+  (message "[a6s] disconnected"))
 
 ;;;###autoload
 (defun autonoma-status ()
   "Print current daemon connection status."
   (interactive)
-  (message "[autonoma] status: %s" (autonoma-api-status)))
+  (message "[a6s] status: %s" (autonoma-api-status)))
 
 ;;; Agent invocation
 
@@ -99,9 +99,9 @@
    agent task nil
    (lambda (result err)
      (if err
-         (message "[autonoma] invoke failed: %s" err)
+         (message "[a6s] invoke failed: %s" err)
        (let ((exec-id (plist-get result :executionId)))
-         (message "[autonoma] invoked %s: execution=%s" agent exec-id))))))
+         (message "[a6s] invoked %s: execution=%s" agent exec-id))))))
 
 ;;; Code commands
 
@@ -117,8 +117,8 @@
      code lang path
      (lambda (result err)
        (if err
-           (message "[autonoma] explain failed: %s" err)
-         (let ((buf (get-buffer-create "*Autonoma Explain*")))
+           (message "[a6s] explain failed: %s" err)
+         (let ((buf (get-buffer-create "*A6s Explain*")))
            (with-current-buffer buf
              (let ((inhibit-read-only t))
                (erase-buffer)
@@ -139,7 +139,7 @@
      code lang path (if (string-empty-p instructions) nil instructions)
      (lambda (result err)
        (if err
-           (message "[autonoma] refactor failed: %s" err)
+           (message "[a6s] refactor failed: %s" err)
          (setq autonoma-commands--last-artifacts result)
          (autonoma-ui-show-results result))))))
 
@@ -158,8 +158,8 @@
      code lang path review-type
      (lambda (result err)
        (if err
-           (message "[autonoma] review failed: %s" err)
-         (let ((buf (get-buffer-create "*Autonoma Review*")))
+           (message "[a6s] review failed: %s" err)
+         (let ((buf (get-buffer-create "*A6s Review*")))
            (with-current-buffer buf
              (let ((inhibit-read-only t))
                (erase-buffer)
@@ -185,7 +185,7 @@
      code lang path
      (lambda (result err)
        (if err
-           (message "[autonoma] generate-tests failed: %s" err)
+           (message "[a6s] generate-tests failed: %s" err)
          (setq autonoma-commands--last-artifacts result)
          (autonoma-ui-show-results result))))))
 
@@ -202,8 +202,8 @@
      autonoma-commands--last-artifacts
      (lambda (result err)
        (if err
-           (message "[autonoma] preview failed: %s" err)
-         (let ((buf (get-buffer-create "*Autonoma Preview*")))
+           (message "[a6s] preview failed: %s" err)
+         (let ((buf (get-buffer-create "*A6s Preview*")))
            (with-current-buffer buf
              (let ((inhibit-read-only t))
                (erase-buffer)
@@ -231,8 +231,8 @@
        autonoma-commands--last-artifacts
        (lambda (result err)
          (if err
-             (message "[autonoma] apply failed: %s" err)
-           (message "[autonoma] applied=%d skipped=%d"
+             (message "[a6s] apply failed: %s" err)
+           (message "[a6s] applied=%d skipped=%d"
                     (or (plist-get result :applied) 0)
                     (or (plist-get result :skipped) 0))
            (setq autonoma-commands--last-artifacts nil)))))))
@@ -247,7 +247,7 @@
   (autonoma-api-background-list
    (lambda (tasks err)
      (if err
-         (message "[autonoma] list-tasks failed: %s" err)
+         (message "[a6s] list-tasks failed: %s" err)
        (setq autonoma-ui--tasks tasks)
        (display-buffer (autonoma-ui--render-tasks))))))
 
@@ -260,25 +260,25 @@
    task-id
    (lambda (_result err)
      (if err
-         (message "[autonoma] cancel failed: %s" err)
-       (message "[autonoma] task cancelled: %s" task-id)))))
+         (message "[a6s] cancel failed: %s" err)
+       (message "[a6s] task cancelled: %s" task-id)))))
 
 ;;;###autoload
 (defun autonoma-list-agents ()
-  "Fetch and display all available agents in the *Autonoma Agents* buffer."
+  "Fetch and display all available agents in the *A6s Agents* buffer."
   (interactive)
   (autonoma-commands--ensure-connected)
   (autonoma-api-agents-list
    (lambda (agents err)
      (if err
-         (message "[autonoma] list-agents failed: %s" err)
+         (message "[a6s] list-agents failed: %s" err)
        (setq autonoma-commands--known-agents
              (mapcar (lambda (a) (plist-get a :name)) agents))
-       (let ((buf (get-buffer-create "*Autonoma Agents*")))
+       (let ((buf (get-buffer-create "*A6s Agents*")))
          (with-current-buffer buf
            (let ((inhibit-read-only t))
              (erase-buffer)
-             (insert (propertize "Autonoma Agents\n" 'face 'autonoma-ui-header))
+             (insert (propertize "A6s Agents\n" 'face 'autonoma-ui-header))
              (insert (make-string 60 ?-) "\n")
              (dolist (agent agents)
                (insert (format "  %-12s %-20s %s\n"
@@ -298,8 +298,8 @@
    execution-id
    (lambda (result err)
      (if err
-         (message "[autonoma] execution-status failed: %s" err)
-       (message "[autonoma] execution=%s status=%s phase=%s progress=%s%%"
+         (message "[a6s] execution-status failed: %s" err)
+       (message "[a6s] execution=%s status=%s phase=%s progress=%s%%"
                 (or (plist-get result :executionId) "?")
                 (or (plist-get result :status) "?")
                 (or (plist-get result :phase) "?")
@@ -322,21 +322,21 @@
    task agent
    (lambda (result err)
      (if err
-         (message "[autonoma] background-launch failed: %s" err)
-       (message "[autonoma] launched task=%s"
+         (message "[a6s] background-launch failed: %s" err)
+       (message "[a6s] launched task=%s"
                 (or (plist-get result :taskId) "?"))))))
 
 ;;;###autoload
 (defun autonoma-background-output (task-id)
-  "Prompt for TASK-ID and display its output in the *Autonoma Output* buffer."
+  "Prompt for TASK-ID and display its output in the *A6s Output* buffer."
   (interactive "sTask id: ")
   (autonoma-commands--ensure-connected)
   (autonoma-api-background-output
    task-id
    (lambda (result err)
      (if err
-         (message "[autonoma] background-output failed: %s" err)
-       (let ((buf (get-buffer-create "*Autonoma Output*")))
+         (message "[a6s] background-output failed: %s" err)
+       (let ((buf (get-buffer-create "*A6s Output*")))
          (with-current-buffer buf
            (let ((inhibit-read-only t))
              (erase-buffer)
