@@ -1,0 +1,4 @@
+*.elc
+.cask/
+coverage-final.json
+.cask-compile-log

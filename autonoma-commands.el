@@ -263,6 +263,88 @@
          (message "[autonoma] cancel failed: %s" err)
        (message "[autonoma] task cancelled: %s" task-id)))))
 
+;;;###autoload
+(defun autonoma-list-agents ()
+  "Fetch and display all available agents in the *Autonoma Agents* buffer."
+  (interactive)
+  (autonoma-commands--ensure-connected)
+  (autonoma-api-agents-list
+   (lambda (agents err)
+     (if err
+         (message "[autonoma] list-agents failed: %s" err)
+       (setq autonoma-commands--known-agents
+             (mapcar (lambda (a) (plist-get a :name)) agents))
+       (let ((buf (get-buffer-create "*Autonoma Agents*")))
+         (with-current-buffer buf
+           (let ((inhibit-read-only t))
+             (erase-buffer)
+             (insert (propertize "Autonoma Agents\n" 'face 'autonoma-ui-header))
+             (insert (make-string 60 ?-) "\n")
+             (dolist (agent agents)
+               (insert (format "  %-12s %-20s %s\n"
+                               (or (plist-get agent :id) "?")
+                               (or (plist-get agent :name) "?")
+                               (or (plist-get agent :description) ""))))
+             (goto-char (point-min)))
+           (special-mode))
+         (display-buffer buf))))))
+
+;;;###autoload
+(defun autonoma-execution-status (execution-id)
+  "Prompt for EXECUTION-ID and display its current status."
+  (interactive "sExecution id: ")
+  (autonoma-commands--ensure-connected)
+  (autonoma-api-execution-status
+   execution-id
+   (lambda (result err)
+     (if err
+         (message "[autonoma] execution-status failed: %s" err)
+       (message "[autonoma] execution=%s status=%s phase=%s progress=%s%%"
+                (or (plist-get result :executionId) "?")
+                (or (plist-get result :status) "?")
+                (or (plist-get result :phase) "?")
+                (or (plist-get result :progress) "?"))))))
+
+;;;###autoload
+(defun autonoma-background-launch (agent task)
+  "Launch a background TASK under AGENT."
+  (interactive
+   (progn
+     (autonoma-commands--ensure-connected)
+     (let* ((agents (or autonoma-commands--known-agents
+                        (list "architect-ai" "coder-ai" "tester-ai"
+                              "reviewer-ai" "req-ai")))
+            (agent (completing-read "Agent: " agents nil nil))
+            (task (read-string "Task: ")))
+       (list agent task))))
+  (autonoma-commands--ensure-connected)
+  (autonoma-api-background-launch
+   task agent
+   (lambda (result err)
+     (if err
+         (message "[autonoma] background-launch failed: %s" err)
+       (message "[autonoma] launched task=%s"
+                (or (plist-get result :taskId) "?"))))))
+
+;;;###autoload
+(defun autonoma-background-output (task-id)
+  "Prompt for TASK-ID and display its output in the *Autonoma Output* buffer."
+  (interactive "sTask id: ")
+  (autonoma-commands--ensure-connected)
+  (autonoma-api-background-output
+   task-id
+   (lambda (result err)
+     (if err
+         (message "[autonoma] background-output failed: %s" err)
+       (let ((buf (get-buffer-create "*Autonoma Output*")))
+         (with-current-buffer buf
+           (let ((inhibit-read-only t))
+             (erase-buffer)
+             (insert (or (plist-get result :output) (format "%s" result) ""))
+             (goto-char (point-min)))
+           (special-mode))
+         (display-buffer buf))))))
+
 (provide 'autonoma-commands)
 
 ;;; autonoma-commands.el ends here
