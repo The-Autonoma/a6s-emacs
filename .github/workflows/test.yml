@@ -1,0 +1,46 @@
+name: test
+
+on:
+  push:
+    branches: [main, staging]
+    paths:
+      - 'tools/extensions/emacs/**'
+  pull_request:
+    paths:
+      - 'tools/extensions/emacs/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        emacs_version: ['28.2', '29.1', '30.1']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Emacs
+        uses: purcell/setup-emacs@master
+        with:
+          version: ${{ matrix.emacs_version }}
+
+      - name: Install Cask
+        uses: cask/setup-cask@master
+        with:
+          version: snapshot
+
+      - name: Install dependencies
+        working-directory: tools/extensions/emacs
+        run: cask install
+
+      - name: Byte compile
+        working-directory: tools/extensions/emacs
+        run: make compile
+
+      - name: Lint
+        working-directory: tools/extensions/emacs
+        run: make lint
+
+      - name: Test with coverage
+        working-directory: tools/extensions/emacs
+        run: make test

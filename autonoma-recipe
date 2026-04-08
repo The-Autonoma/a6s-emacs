@@ -1,0 +1,4 @@
+(autonoma
+ :fetcher github
+ :repo "The-Autonoma/autonoma-emacs"
+ :files (:defaults))
