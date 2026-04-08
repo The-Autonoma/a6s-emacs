@@ -17,6 +17,10 @@
 (require 'autonoma-api)
 
 (declare-function autonoma-connect "autonoma-commands")
+(declare-function autonoma-list-agents "autonoma-commands")
+(declare-function autonoma-execution-status "autonoma-commands")
+(declare-function autonoma-background-launch "autonoma-commands")
+(declare-function autonoma-background-output "autonoma-commands")
 
 ;;; Faces
 
@@ -270,7 +274,11 @@
    ("s" "Status" autonoma-status)]
   ["Agents"
    ("i" "Invoke agent" autonoma-invoke-agent)
+   ("a" "List agents" autonoma-list-agents)
+   ("S" "Execution status" autonoma-execution-status)
    ("l" "List tasks" autonoma-list-tasks)
+   ("b" "Background launch" autonoma-background-launch)
+   ("o" "Task output" autonoma-background-output)
    ("x" "Cancel task" autonoma-cancel-task)]
   ["Code (on region)"
    ("e" "Explain" autonoma-explain-region)

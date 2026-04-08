@@ -116,6 +116,37 @@
    (autonoma-cancel-task "task_1")
    (should (equal (autonoma-test--last-sent-method) "background.cancel"))))
 
+(ert-deftest autonoma-commands-test-list-agents ()
+  "autonoma-list-agents sends agents.list."
+  (autonoma-test-with-connection
+   (autonoma-list-agents)
+   (should (equal (autonoma-test--last-sent-method) "agents.list"))))
+
+(ert-deftest autonoma-commands-test-execution-status ()
+  "autonoma-execution-status sends execution.status."
+  (autonoma-test-with-connection
+   (autonoma-execution-status "exec_42")
+   (should (equal (autonoma-test--last-sent-method) "execution.status"))
+   (should (equal (plist-get (autonoma-test--last-sent-params) :executionId)
+                  "exec_42"))))
+
+(ert-deftest autonoma-commands-test-background-launch ()
+  "autonoma-background-launch sends background.launch."
+  (autonoma-test-with-connection
+   (autonoma-background-launch "coder-ai" "write tests")
+   (should (equal (autonoma-test--last-sent-method) "background.launch"))
+   (let ((params (autonoma-test--last-sent-params)))
+     (should (equal (plist-get params :agentType) "coder-ai"))
+     (should (equal (plist-get params :task) "write tests")))))
+
+(ert-deftest autonoma-commands-test-background-output ()
+  "autonoma-background-output sends background.output."
+  (autonoma-test-with-connection
+   (autonoma-background-output "task_7")
+   (should (equal (autonoma-test--last-sent-method) "background.output"))
+   (should (equal (plist-get (autonoma-test--last-sent-params) :taskId)
+                  "task_7"))))
+
 (ert-deftest autonoma-commands-test-preview-no-artifacts ()
   "Preview with no pending artifacts prints message."
   (autonoma-test-with-connection
