@@ -1,4 +1,4 @@
-;;; autonoma-api.el --- WebSocket client for Autonoma daemon -*- lexical-binding: t; -*-
+;;; autonoma-api.el --- WebSocket client for A6s daemon -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2026 Autonoma AI
 
@@ -6,7 +6,7 @@
 
 ;;; Commentary:
 
-;; WebSocket client for communicating with the local Autonoma CLI daemon
+;; WebSocket client for communicating with the local A6s CLI daemon
 ;; at ws://localhost:9876/ws.  Implements all 13 daemon protocol methods
 ;; from tools/cli/docs/DAEMON-PROTOCOL.md, event subscription, timeouts,
 ;; and reconnect-with-backoff.
@@ -58,9 +58,9 @@
 
 ;;; Errors
 
-(define-error 'autonoma-api-error "Autonoma API error")
+(define-error 'autonoma-api-error "A6s API error")
 (define-error 'autonoma-api-not-connected
-  "Not connected to Autonoma daemon" 'autonoma-api-error)
+  "Not connected to A6s daemon" 'autonoma-api-error)
 (define-error 'autonoma-api-timeout "Request timed out" 'autonoma-api-error)
 (define-error 'autonoma-api-invalid-input "Invalid input" 'autonoma-api-error)
 
@@ -99,7 +99,7 @@
     (condition-case err
         (funcall handler data)
       (error
-       (message "[autonoma] event handler error for %s: %s"
+       (message "[a6s] event handler error for %s: %s"
                 event (error-message-string err))))))
 
 ;;; Status
@@ -129,7 +129,7 @@
                (message (json-read-from-string payload)))
           (autonoma-api--dispatch-message message))
       (error
-       (message "[autonoma] failed to parse frame: %s"
+       (message "[a6s] failed to parse frame: %s"
                 (error-message-string err))))))
 
 (defun autonoma-api--dispatch-message (message)
@@ -152,7 +152,7 @@
      (type
       (autonoma-api--emit type (or (plist-get message :data) message)))
      (t
-      (message "[autonoma] unknown message (no id/type): %S" message)))))
+      (message "[a6s] unknown message (no id/type): %S" message)))))
 
 ;;; Connection
 
@@ -161,7 +161,7 @@
   (format "ws://%s:%d/ws" autonoma-daemon-host autonoma-daemon-port))
 
 (defun autonoma-api-connect (&optional callback)
-  "Connect to the Autonoma daemon.
+  "Connect to the A6s daemon.
 CALLBACK, if provided, is called with (ok-p error-message)."
   (cond
    (autonoma-api--connecting
@@ -254,7 +254,7 @@ CALLBACK, if provided, is called with (ok-p error-message)."
 (defun autonoma-api-reconnect-with-backoff ()
   "Attempt to reconnect with exponential backoff (1s -> 16s, max 5 attempts)."
   (if (>= autonoma-api--reconnect-attempts autonoma-max-reconnect-attempts)
-      (message "[autonoma] giving up after %d reconnect attempts"
+      (message "[a6s] giving up after %d reconnect attempts"
                autonoma-api--reconnect-attempts)
     (autonoma-api--schedule-reconnect)))
 
@@ -263,7 +263,7 @@ CALLBACK, if provided, is called with (ok-p error-message)."
   (let* ((attempt autonoma-api--reconnect-attempts)
          (delay (min 16 (expt 2 attempt))))
     (cl-incf autonoma-api--reconnect-attempts)
-    (message "[autonoma] reconnecting in %ds (attempt %d/%d)"
+    (message "[a6s] reconnecting in %ds (attempt %d/%d)"
              delay (1+ attempt) autonoma-max-reconnect-attempts)
     (setq autonoma-api--reconnect-timer
           (run-at-time
@@ -273,7 +273,7 @@ CALLBACK, if provided, is called with (ok-p error-message)."
              (autonoma-api-connect
               (lambda (ok err)
                 (unless ok
-                  (message "[autonoma] reconnect failed: %s" err)
+                  (message "[a6s] reconnect failed: %s" err)
                   (autonoma-api-reconnect-with-backoff)))))))))
 
 ;;; Request/response
@@ -286,7 +286,7 @@ CALLBACK, if provided, is called with (ok-p error-message)."
   "Send request METHOD with PARAMS.  Invoke CALLBACK with (result error)."
   (unless autonoma-api--connected
     (signal 'autonoma-api-not-connected
-            (list "Not connected to Autonoma daemon")))
+            (list "Not connected to A6s daemon")))
   (let* ((id (autonoma-api--next-id))
          (message (list :id id :method method :params (or params (list))))
          (timer

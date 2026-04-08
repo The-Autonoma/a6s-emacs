@@ -1,4 +1,4 @@
-;;; autonoma.el --- Autonoma Code extension: RIGOR agents via local daemon -*- lexical-binding: t; -*-
+;;; autonoma.el --- A6s: intelligent multi-agent orchestration via local daemon -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2026 Autonoma AI
 
@@ -12,10 +12,11 @@
 
 ;;; Commentary:
 
-;; Autonoma Code is an Emacs extension that connects to the local Autonoma
-;; CLI daemon (`a6s code --daemon') via WebSocket on `ws://localhost:9876/ws'.
-;; It provides RIGOR agent invocation, code explanation, refactoring, review,
-;; test generation, and background task management directly inside Emacs.
+;; A6s is an Emacs extension that connects to the local A6s CLI daemon
+;; (`a6s code --daemon') via WebSocket on `ws://localhost:9876/ws'.
+;; It provides intelligent multi-agent orchestration: RIGOR agent invocation,
+;; code explanation, refactoring, review, test generation, and background
+;; task management directly inside Emacs.
 ;;
 ;; The daemon is the only component that talks to the remote orchestrator;
 ;; this extension never holds API credentials or calls orchestrator endpoints
@@ -39,17 +40,17 @@
 ;;; Customization
 
 (defgroup autonoma nil
-  "Autonoma Code: RIGOR agents via local daemon."
+  "A6s: intelligent multi-agent orchestration via local daemon."
   :group 'tools
   :prefix "autonoma-")
 
 (defcustom autonoma-daemon-port 9876
-  "Port on which the Autonoma CLI daemon is listening."
+  "Port on which the A6s CLI daemon is listening."
   :type 'integer
   :group 'autonoma)
 
 (defcustom autonoma-daemon-host "localhost"
-  "Host on which the Autonoma CLI daemon is listening."
+  "Host on which the A6s CLI daemon is listening."
   :type 'string
   :group 'autonoma)
 
@@ -89,35 +90,35 @@ First use prompts the user to enable or disable telemetry."
 
 ;;;###autoload
 (defun autonoma-setup ()
-  "Initialize the Autonoma Code extension.
+  "Initialize the A6s extension.
 Sets up autoloads and prompts for telemetry preference on first run."
   (interactive)
   (unless autonoma--telemetry-prompted
     (setq autonoma--telemetry-prompted t)
     (when (and (not autonoma-telemetry-enabled)
                (called-interactively-p 'any))
-      (when (y-or-n-p "Enable anonymous Autonoma telemetry? ")
+      (when (y-or-n-p "Enable anonymous A6s telemetry? ")
         (setq autonoma-telemetry-enabled t)
         (customize-save-variable 'autonoma-telemetry-enabled t))))
-  (message "Autonoma Code ready. Use M-x autonoma-connect or enable autonoma-mode."))
+  (message "A6s ready. Use M-x autonoma-connect or enable autonoma-mode."))
 
 ;; Autoloads for all interactive entry points (real definitions live in
 ;; sibling files, loaded on demand).
 
 ;;;###autoload
-(autoload 'autonoma-mode "autonoma-ui" "Autonoma minor mode." t)
+(autoload 'autonoma-mode "autonoma-ui" "A6s minor mode." t)
 ;;;###autoload
-(autoload 'autonoma-connect "autonoma-commands" "Connect to Autonoma daemon." t)
+(autoload 'autonoma-connect "autonoma-commands" "Connect to A6s daemon." t)
 ;;;###autoload
-(autoload 'autonoma-disconnect "autonoma-commands" "Disconnect from Autonoma daemon." t)
+(autoload 'autonoma-disconnect "autonoma-commands" "Disconnect from A6s daemon." t)
 ;;;###autoload
-(autoload 'autonoma-invoke-agent "autonoma-commands" "Invoke an Autonoma agent." t)
+(autoload 'autonoma-invoke-agent "autonoma-commands" "Invoke an A6s agent." t)
 ;;;###autoload
-(autoload 'autonoma-explain-region "autonoma-commands" "Explain region with Autonoma." t)
+(autoload 'autonoma-explain-region "autonoma-commands" "Explain region with A6s." t)
 ;;;###autoload
-(autoload 'autonoma-refactor-region "autonoma-commands" "Refactor region with Autonoma." t)
+(autoload 'autonoma-refactor-region "autonoma-commands" "Refactor region with A6s." t)
 ;;;###autoload
-(autoload 'autonoma-review-region "autonoma-commands" "Review region with Autonoma." t)
+(autoload 'autonoma-review-region "autonoma-commands" "Review region with A6s." t)
 ;;;###autoload
 (autoload 'autonoma-generate-tests-region "autonoma-commands" "Generate tests for region." t)
 ;;;###autoload
@@ -129,9 +130,9 @@ Sets up autoloads and prompts for telemetry preference on first run."
 ;;;###autoload
 (autoload 'autonoma-list-tasks "autonoma-commands" "List background tasks." t)
 ;;;###autoload
-(autoload 'autonoma-status "autonoma-commands" "Show Autonoma connection status." t)
+(autoload 'autonoma-status "autonoma-commands" "Show A6s connection status." t)
 ;;;###autoload
-(autoload 'autonoma-transient "autonoma-ui" "Open Autonoma transient menu." t)
+(autoload 'autonoma-transient "autonoma-ui" "Open A6s transient menu." t)
 
 (provide 'autonoma)
 

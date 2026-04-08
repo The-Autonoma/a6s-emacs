@@ -1,16 +1,17 @@
-# autonoma.el — Autonoma Code for Emacs
+# autonoma.el — A6s for Emacs
 
 [![MELPA](https://melpa.org/packages/autonoma-badge.svg)](https://melpa.org/#/autonoma)
 [![Test](https://github.com/The-Autonoma/autonoma-emacs/workflows/test/badge.svg)](https://github.com/The-Autonoma/autonoma-emacs/actions)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE)
 
-Multi-agent AI coding inside Emacs. Invoke Autonoma's RIGOR agents to
-explain, refactor, review, and generate tests from any buffer — without
-leaving your editor and without holding any API credentials.
+Intelligent multi-agent orchestration inside Emacs. Invoke A6s RIGOR
+agents to explain, refactor, review, and generate tests from any
+buffer — without leaving your editor and without holding any API
+credentials.
 
-This package is a thin client that talks to the local Autonoma CLI
-daemon (`a6s code --daemon`) over WebSocket. The daemon is the only
-component that talks to the remote orchestrator.
+This package is a thin client that talks to the local A6s CLI daemon
+(`a6s code --daemon`) over WebSocket. The daemon is the only component
+that talks to the remote orchestrator.
 
 ## Install
 
@@ -49,7 +50,7 @@ git clone https://github.com/The-Autonoma/autonoma-emacs.git ~/.emacs.d/autonoma
 ## Prerequisites
 
 - Emacs 27.1 or newer
-- The Autonoma CLI running as a daemon: `a6s code --daemon`
+- The A6s CLI running as a daemon: `a6s code --daemon`
 - Packages: `websocket` 1.14+, `transient` 0.4+
 
 ## Quick start
