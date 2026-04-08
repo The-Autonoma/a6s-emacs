@@ -1,13 +1,9 @@
-name: test
+name: CI
 
 on:
   push:
-    branches: [main, staging]
-    paths:
-      - 'tools/extensions/emacs/**'
+    branches: [main]
   pull_request:
-    paths:
-      - 'tools/extensions/emacs/**'
 
 jobs:
   test:
@@ -30,17 +26,13 @@ jobs:
           version: snapshot
 
       - name: Install dependencies
-        working-directory: tools/extensions/emacs
         run: cask install
 
       - name: Byte compile
-        working-directory: tools/extensions/emacs
         run: make compile
 
       - name: Lint
-        working-directory: tools/extensions/emacs
         run: make lint
 
       - name: Test with coverage
-        working-directory: tools/extensions/emacs
         run: make test
