@@ -8,7 +8,7 @@
 
 ;; WebSocket client for communicating with the local A6s CLI daemon
 ;; at ws://localhost:9876/ws.  Implements all 13 daemon protocol methods
-;; from tools/cli/docs/DAEMON-PROTOCOL.md, event subscription, timeouts,
+;; from https://www.theautonoma.io/docs/build/cli/daemon, event subscription, timeouts,
 ;; and reconnect-with-backoff.
 ;;
 ;; The client is the ONLY component that talks to the daemon.  All user-
@@ -324,7 +324,7 @@ CALLBACK, if provided, is called with (ok-p error-message)."
       (signal 'autonoma-api-error (list ret-error)))
     ret-result))
 
-;;; Public API methods (all 13 from DAEMON-PROTOCOL.md)
+;;; Public API methods (all 13 from Autonoma Daemon Protocol v1.0)
 
 (defun autonoma-api-agents-list (callback)
   "Asynchronously list agents; CALLBACK receives (agents err)."
