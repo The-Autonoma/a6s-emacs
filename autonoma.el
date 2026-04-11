@@ -30,7 +30,7 @@
 ;; Then open any buffer and run M-x autonoma-mode, or bind a global key to
 ;; `autonoma-transient' (default: C-c C-a when autonoma-mode is active).
 ;;
-;; See CLAUDE.md for architecture, protocol conformance, and installation
+;; See https://www.theautonoma.io/docs/build/cli/daemon for protocol and bootstrap
 ;; instructions.
 
 ;;; Code:

@@ -111,9 +111,8 @@ All options live in the `autonoma` customize group.
 ```
 
 The extension implements the
-[DAEMON-PROTOCOL](https://github.com/The-Autonoma/autonoma-emacs/blob/main/CLAUDE.md#protocol-conformance)
-(13 RPC methods, 3 event streams). See
-[`CLAUDE.md`](./CLAUDE.md) for architecture details.
+[Autonoma Daemon Protocol v1.0](https://www.theautonoma.io/docs/build/cli/daemon)
+(13 RPC methods, 3 event streams).
 
 ## Development
 
