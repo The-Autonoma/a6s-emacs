@@ -2,11 +2,11 @@
 
 ;; Copyright (C) 2026 Autonoma AI
 
-;; Author: Autonoma Team <support@autonoma.ai>
+;; Author: Autonoma Team <support@theautonoma.io>
 ;; Version: 1.0.0
 ;; Package-Requires: ((emacs "27.1") (websocket "1.14") (transient "0.4.0"))
 ;; Keywords: tools, convenience
-;; URL: https://github.com/The-Autonoma/autonoma-emacs
+;; URL: https://github.com/The-Autonoma/a6s-emacs
 
 ;; This file is not part of GNU Emacs.
 
