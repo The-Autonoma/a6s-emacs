@@ -1,4 +1,4 @@
-(autonoma
+(a6s
  :fetcher github
  :repo "The-Autonoma/autonoma-emacs"
  :files (:defaults))

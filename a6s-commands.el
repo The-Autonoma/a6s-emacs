@@ -1,39 +1,39 @@
-;;; autonoma-commands.el --- Interactive commands for A6s -*- lexical-binding: t; -*-
+;;; a6s-commands.el --- Interactive commands for A6s -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2026 Autonoma AI
 
-;; This file is part of autonoma.el
+;; This file is part of a6s.el
 
 ;;; Commentary:
 
 ;; Interactive `M-x'-callable commands that users invoke directly.
-;; These wrap `autonoma-api-*' asynchronous calls with user prompts,
+;; These wrap `a6s-api-*' asynchronous calls with user prompts,
 ;; input validation, and buffer rendering.
 
 ;;; Code:
 
 (require 'cl-lib)
-(require 'autonoma-api)
-(require 'autonoma-ui)
+(require 'a6s-api)
+(require 'a6s-ui)
 
-(defvar autonoma-daemon-port)
-(defvar autonoma-daemon-host)
+(defvar a6s-daemon-port)
+(defvar a6s-daemon-host)
 
-(defvar autonoma-commands--known-agents nil
+(defvar a6s-commands--known-agents nil
   "Cached list of agents last retrieved from the daemon.")
 
-(defvar autonoma-commands--last-artifacts nil
+(defvar a6s-commands--last-artifacts nil
   "Last set of artifacts returned by a refactor/tests/review call.")
 
 ;;; Helpers
 
-(defun autonoma-commands--ensure-connected ()
+(defun a6s-commands--ensure-connected ()
   "Signal a `user-error' when not connected to the daemon.  Abort the caller."
-  (unless (autonoma-api-connected-p)
+  (unless (a6s-api-connected-p)
     (user-error
-     "Not connected.  Run M-x autonoma-connect (start daemon with `a6s code --daemon')")))
+     "Not connected.  Run M-x a6s-connect (start daemon with `a6s code --daemon')")))
 
-(defun autonoma-commands--buffer-language ()
+(defun a6s-commands--buffer-language ()
   "Guess the language identifier for the current buffer."
   (let ((name (symbol-name major-mode)))
     (cond
@@ -41,25 +41,25 @@
      ((string-match "\\`\\(.*\\)-mode\\'" name) (match-string 1 name))
      (t "text"))))
 
-(defun autonoma-commands--region-or-buffer ()
+(defun a6s-commands--region-or-buffer ()
   "Return the active region string, or the buffer string if no region."
   (if (use-region-p)
       (buffer-substring-no-properties (region-beginning) (region-end))
     (buffer-substring-no-properties (point-min) (point-max))))
 
-(defun autonoma-commands--file-path ()
+(defun a6s-commands--file-path ()
   "Return the variable `buffer-file-name' or a placeholder."
   (or (buffer-file-name) (buffer-name)))
 
 ;;; Connection commands
 
 ;;;###autoload
-(defun autonoma-connect ()
+(defun a6s-connect ()
   "Connect to the local A6s CLI daemon."
   (interactive)
   (message "[a6s] connecting to %s:%d ..."
-           autonoma-daemon-host autonoma-daemon-port)
-  (autonoma-api-connect
+           a6s-daemon-host a6s-daemon-port)
+  (a6s-api-connect
    (lambda (ok err)
      (if ok
          (message "[a6s] connected")
@@ -68,34 +68,34 @@
         err)))))
 
 ;;;###autoload
-(defun autonoma-disconnect ()
+(defun a6s-disconnect ()
   "Disconnect from the A6s daemon."
   (interactive)
-  (autonoma-api-disconnect)
+  (a6s-api-disconnect)
   (message "[a6s] disconnected"))
 
 ;;;###autoload
-(defun autonoma-status ()
+(defun a6s-status ()
   "Print current daemon connection status."
   (interactive)
-  (message "[a6s] status: %s" (autonoma-api-status)))
+  (message "[a6s] status: %s" (a6s-api-status)))
 
 ;;; Agent invocation
 
 ;;;###autoload
-(defun autonoma-invoke-agent (agent task)
+(defun a6s-invoke-agent (agent task)
   "Invoke AGENT with TASK (both prompted interactively)."
   (interactive
    (progn
-     (autonoma-commands--ensure-connected)
-     (let* ((agents (or autonoma-commands--known-agents
+     (a6s-commands--ensure-connected)
+     (let* ((agents (or a6s-commands--known-agents
                         (list "architect-ai" "coder-ai" "tester-ai"
                               "reviewer-ai" "req-ai")))
             (agent (completing-read "Agent: " agents nil nil))
             (task (read-string "Task: ")))
        (list agent task))))
-  (autonoma-commands--ensure-connected)
-  (autonoma-api-agents-invoke
+  (a6s-commands--ensure-connected)
+  (a6s-api-agents-invoke
    agent task nil
    (lambda (result err)
      (if err
@@ -106,14 +106,14 @@
 ;;; Code commands
 
 ;;;###autoload
-(defun autonoma-explain-region ()
+(defun a6s-explain-region ()
   "Ask the daemon to explain the current region (or whole buffer)."
   (interactive)
-  (autonoma-commands--ensure-connected)
-  (let ((code (autonoma-commands--region-or-buffer))
-        (lang (autonoma-commands--buffer-language))
-        (path (autonoma-commands--file-path)))
-    (autonoma-api-code-explain
+  (a6s-commands--ensure-connected)
+  (let ((code (a6s-commands--region-or-buffer))
+        (lang (a6s-commands--buffer-language))
+        (path (a6s-commands--file-path)))
+    (a6s-api-code-explain
      code lang path
      (lambda (result err)
        (if err
@@ -128,33 +128,33 @@
            (display-buffer buf)))))))
 
 ;;;###autoload
-(defun autonoma-refactor-region (instructions)
+(defun a6s-refactor-region (instructions)
   "Refactor region with optional INSTRUCTIONS."
   (interactive "sRefactor instructions (optional): ")
-  (autonoma-commands--ensure-connected)
-  (let ((code (autonoma-commands--region-or-buffer))
-        (lang (autonoma-commands--buffer-language))
-        (path (autonoma-commands--file-path)))
-    (autonoma-api-code-refactor
+  (a6s-commands--ensure-connected)
+  (let ((code (a6s-commands--region-or-buffer))
+        (lang (a6s-commands--buffer-language))
+        (path (a6s-commands--file-path)))
+    (a6s-api-code-refactor
      code lang path (if (string-empty-p instructions) nil instructions)
      (lambda (result err)
        (if err
            (message "[a6s] refactor failed: %s" err)
-         (setq autonoma-commands--last-artifacts result)
-         (autonoma-ui-show-results result))))))
+         (setq a6s-commands--last-artifacts result)
+         (a6s-ui-show-results result))))))
 
 ;;;###autoload
-(defun autonoma-review-region (review-type)
+(defun a6s-review-region (review-type)
   "Review region with REVIEW-TYPE (security, performance, quality, all)."
   (interactive
    (list (completing-read "Review type: "
                           '("security" "performance" "quality" "all")
                           nil t "all")))
-  (autonoma-commands--ensure-connected)
-  (let ((code (autonoma-commands--region-or-buffer))
-        (lang (autonoma-commands--buffer-language))
-        (path (autonoma-commands--file-path)))
-    (autonoma-api-code-review
+  (a6s-commands--ensure-connected)
+  (let ((code (a6s-commands--region-or-buffer))
+        (lang (a6s-commands--buffer-language))
+        (path (a6s-commands--file-path)))
+    (a6s-api-code-review
      code lang path review-type
      (lambda (result err)
        (if err
@@ -174,32 +174,32 @@
            (display-buffer buf)))))))
 
 ;;;###autoload
-(defun autonoma-generate-tests-region ()
+(defun a6s-generate-tests-region ()
   "Generate test code for the current region."
   (interactive)
-  (autonoma-commands--ensure-connected)
-  (let ((code (autonoma-commands--region-or-buffer))
-        (lang (autonoma-commands--buffer-language))
-        (path (autonoma-commands--file-path)))
-    (autonoma-api-code-generate-tests
+  (a6s-commands--ensure-connected)
+  (let ((code (a6s-commands--region-or-buffer))
+        (lang (a6s-commands--buffer-language))
+        (path (a6s-commands--file-path)))
+    (a6s-api-code-generate-tests
      code lang path
      (lambda (result err)
        (if err
            (message "[a6s] generate-tests failed: %s" err)
-         (setq autonoma-commands--last-artifacts result)
-         (autonoma-ui-show-results result))))))
+         (setq a6s-commands--last-artifacts result)
+         (a6s-ui-show-results result))))))
 
 ;;; Artifacts
 
 ;;;###autoload
-(defun autonoma-preview-changes ()
+(defun a6s-preview-changes ()
   "Preview currently pending artifacts."
   (interactive)
-  (autonoma-commands--ensure-connected)
-  (if (null autonoma-commands--last-artifacts)
+  (a6s-commands--ensure-connected)
+  (if (null a6s-commands--last-artifacts)
       (message "No artifacts to preview")
-    (autonoma-api-artifacts-preview
-     autonoma-commands--last-artifacts
+    (a6s-api-artifacts-preview
+     a6s-commands--last-artifacts
      (lambda (result err)
        (if err
            (message "[a6s] preview failed: %s" err)
@@ -218,45 +218,45 @@
            (display-buffer buf)))))))
 
 ;;;###autoload
-(defun autonoma-apply-artifacts ()
+(defun a6s-apply-artifacts ()
   "Apply the most recently returned artifacts."
   (interactive)
-  (autonoma-commands--ensure-connected)
-  (if (null autonoma-commands--last-artifacts)
+  (a6s-commands--ensure-connected)
+  (if (null a6s-commands--last-artifacts)
       (message "No artifacts to apply")
     (when (yes-or-no-p
            (format "Apply %d artifact(s)? "
-                   (length autonoma-commands--last-artifacts)))
-      (autonoma-api-artifacts-apply
-       autonoma-commands--last-artifacts
+                   (length a6s-commands--last-artifacts)))
+      (a6s-api-artifacts-apply
+       a6s-commands--last-artifacts
        (lambda (result err)
          (if err
              (message "[a6s] apply failed: %s" err)
            (message "[a6s] applied=%d skipped=%d"
                     (or (plist-get result :applied) 0)
                     (or (plist-get result :skipped) 0))
-           (setq autonoma-commands--last-artifacts nil)))))))
+           (setq a6s-commands--last-artifacts nil)))))))
 
 ;;; Background tasks
 
 ;;;###autoload
-(defun autonoma-list-tasks ()
+(defun a6s-list-tasks ()
   "Fetch and show background tasks."
   (interactive)
-  (autonoma-commands--ensure-connected)
-  (autonoma-api-background-list
+  (a6s-commands--ensure-connected)
+  (a6s-api-background-list
    (lambda (tasks err)
      (if err
          (message "[a6s] list-tasks failed: %s" err)
-       (setq autonoma-ui--tasks tasks)
-       (display-buffer (autonoma-ui--render-tasks))))))
+       (setq a6s-ui--tasks tasks)
+       (display-buffer (a6s-ui--render-tasks))))))
 
 ;;;###autoload
-(defun autonoma-cancel-task (task-id)
+(defun a6s-cancel-task (task-id)
   "Cancel background task with TASK-ID."
   (interactive "sTask id: ")
-  (autonoma-commands--ensure-connected)
-  (autonoma-api-background-cancel
+  (a6s-commands--ensure-connected)
+  (a6s-api-background-cancel
    task-id
    (lambda (_result err)
      (if err
@@ -264,21 +264,21 @@
        (message "[a6s] task cancelled: %s" task-id)))))
 
 ;;;###autoload
-(defun autonoma-list-agents ()
+(defun a6s-list-agents ()
   "Fetch and display all available agents in the *A6s Agents* buffer."
   (interactive)
-  (autonoma-commands--ensure-connected)
-  (autonoma-api-agents-list
+  (a6s-commands--ensure-connected)
+  (a6s-api-agents-list
    (lambda (agents err)
      (if err
          (message "[a6s] list-agents failed: %s" err)
-       (setq autonoma-commands--known-agents
+       (setq a6s-commands--known-agents
              (mapcar (lambda (a) (plist-get a :name)) agents))
        (let ((buf (get-buffer-create "*A6s Agents*")))
          (with-current-buffer buf
            (let ((inhibit-read-only t))
              (erase-buffer)
-             (insert (propertize "A6s Agents\n" 'face 'autonoma-ui-header))
+             (insert (propertize "A6s Agents\n" 'face 'a6s-ui-header))
              (insert (make-string 60 ?-) "\n")
              (dolist (agent agents)
                (insert (format "  %-12s %-20s %s\n"
@@ -290,11 +290,11 @@
          (display-buffer buf))))))
 
 ;;;###autoload
-(defun autonoma-execution-status (execution-id)
+(defun a6s-execution-status (execution-id)
   "Prompt for EXECUTION-ID and display its current status."
   (interactive "sExecution id: ")
-  (autonoma-commands--ensure-connected)
-  (autonoma-api-execution-status
+  (a6s-commands--ensure-connected)
+  (a6s-api-execution-status
    execution-id
    (lambda (result err)
      (if err
@@ -306,19 +306,19 @@
                 (or (plist-get result :progress) "?"))))))
 
 ;;;###autoload
-(defun autonoma-background-launch (agent task)
+(defun a6s-background-launch (agent task)
   "Launch a background TASK under AGENT."
   (interactive
    (progn
-     (autonoma-commands--ensure-connected)
-     (let* ((agents (or autonoma-commands--known-agents
+     (a6s-commands--ensure-connected)
+     (let* ((agents (or a6s-commands--known-agents
                         (list "architect-ai" "coder-ai" "tester-ai"
                               "reviewer-ai" "req-ai")))
             (agent (completing-read "Agent: " agents nil nil))
             (task (read-string "Task: ")))
        (list agent task))))
-  (autonoma-commands--ensure-connected)
-  (autonoma-api-background-launch
+  (a6s-commands--ensure-connected)
+  (a6s-api-background-launch
    task agent
    (lambda (result err)
      (if err
@@ -327,11 +327,11 @@
                 (or (plist-get result :taskId) "?"))))))
 
 ;;;###autoload
-(defun autonoma-background-output (task-id)
+(defun a6s-background-output (task-id)
   "Prompt for TASK-ID and display its output in the *A6s Output* buffer."
   (interactive "sTask id: ")
-  (autonoma-commands--ensure-connected)
-  (autonoma-api-background-output
+  (a6s-commands--ensure-connected)
+  (a6s-api-background-output
    task-id
    (lambda (result err)
      (if err
@@ -345,6 +345,6 @@
            (special-mode))
          (display-buffer buf))))))
 
-(provide 'autonoma-commands)
+(provide 'a6s-commands)
 
-;;; autonoma-commands.el ends here
+;;; a6s-commands.el ends here
