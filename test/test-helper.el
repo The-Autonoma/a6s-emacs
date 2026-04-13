@@ -1,4 +1,4 @@
-;;; test-helper.el --- Test helpers for autonoma.el -*- lexical-binding: t; -*-
+;;; test-helper.el --- Test helpers for a6s.el -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2026 Autonoma AI
 
@@ -13,10 +13,10 @@
 
 ;; Coverage — must be set up before loading package files.
 (when (require 'undercover nil t)
-  (undercover "autonoma.el"
-              "autonoma-api.el"
-              "autonoma-ui.el"
-              "autonoma-commands.el"
+  (undercover "a6s.el"
+              "a6s-api.el"
+              "a6s-ui.el"
+              "a6s-commands.el"
               (:report-format 'text)
               (:send-report nil)))
 
@@ -25,132 +25,132 @@
   (add-to-list 'load-path dir))
 
 (require 'websocket)
-(require 'autonoma)
-(require 'autonoma-api)
-(require 'autonoma-ui)
-(require 'autonoma-commands)
+(require 'a6s)
+(require 'a6s-api)
+(require 'a6s-ui)
+(require 'a6s-commands)
 
 ;;; Mock WebSocket
 
-(defvar autonoma-test--mock-ws nil
+(defvar a6s-test--mock-ws nil
   "The mock websocket object.")
 
-(defvar autonoma-test--mock-on-open nil)
-(defvar autonoma-test--mock-on-message nil)
-(defvar autonoma-test--mock-on-close nil)
-(defvar autonoma-test--mock-on-error nil)
-(defvar autonoma-test--mock-sent-messages nil
+(defvar a6s-test--mock-on-open nil)
+(defvar a6s-test--mock-on-message nil)
+(defvar a6s-test--mock-on-close nil)
+(defvar a6s-test--mock-on-error nil)
+(defvar a6s-test--mock-sent-messages nil
   "List of raw JSON strings sent via the mock websocket.")
-(defvar autonoma-test--mock-open-delay 0
+(defvar a6s-test--mock-open-delay 0
   "Seconds to defer open callback. 0 = synchronous.")
-(defvar autonoma-test--mock-fail-open nil
+(defvar a6s-test--mock-fail-open nil
   "If non-nil, do not fire on-open — triggers connect timeout.")
 
-(cl-defstruct autonoma-test-fake-ws url)
+(cl-defstruct a6s-test-fake-ws url)
 
-(defun autonoma-test--install-mocks ()
+(defun a6s-test--install-mocks ()
   "Replace websocket functions with test doubles."
-  (setq autonoma-test--mock-sent-messages nil
-        autonoma-test--mock-fail-open nil
-        autonoma-test--mock-open-delay 0)
-  (advice-add 'websocket-open :override #'autonoma-test--mock-open)
-  (advice-add 'websocket-send-text :override #'autonoma-test--mock-send)
-  (advice-add 'websocket-close :override #'autonoma-test--mock-close))
+  (setq a6s-test--mock-sent-messages nil
+        a6s-test--mock-fail-open nil
+        a6s-test--mock-open-delay 0)
+  (advice-add 'websocket-open :override #'a6s-test--mock-open)
+  (advice-add 'websocket-send-text :override #'a6s-test--mock-send)
+  (advice-add 'websocket-close :override #'a6s-test--mock-close))
 
-(defun autonoma-test--uninstall-mocks ()
+(defun a6s-test--uninstall-mocks ()
   "Restore real websocket functions."
-  (advice-remove 'websocket-open #'autonoma-test--mock-open)
-  (advice-remove 'websocket-send-text #'autonoma-test--mock-send)
-  (advice-remove 'websocket-close #'autonoma-test--mock-close))
+  (advice-remove 'websocket-open #'a6s-test--mock-open)
+  (advice-remove 'websocket-send-text #'a6s-test--mock-send)
+  (advice-remove 'websocket-close #'a6s-test--mock-close))
 
-(defun autonoma-test--mock-open (url &rest plist)
+(defun a6s-test--mock-open (url &rest plist)
   "Mocked `websocket-open' for URL / PLIST."
-  (let ((ws (make-autonoma-test-fake-ws :url url)))
-    (setq autonoma-test--mock-ws ws
-          autonoma-test--mock-on-open (plist-get plist :on-open)
-          autonoma-test--mock-on-message (plist-get plist :on-message)
-          autonoma-test--mock-on-close (plist-get plist :on-close)
-          autonoma-test--mock-on-error (plist-get plist :on-error))
-    (unless autonoma-test--mock-fail-open
-      (if (> autonoma-test--mock-open-delay 0)
-          (run-at-time autonoma-test--mock-open-delay nil
+  (let ((ws (make-a6s-test-fake-ws :url url)))
+    (setq a6s-test--mock-ws ws
+          a6s-test--mock-on-open (plist-get plist :on-open)
+          a6s-test--mock-on-message (plist-get plist :on-message)
+          a6s-test--mock-on-close (plist-get plist :on-close)
+          a6s-test--mock-on-error (plist-get plist :on-error))
+    (unless a6s-test--mock-fail-open
+      (if (> a6s-test--mock-open-delay 0)
+          (run-at-time a6s-test--mock-open-delay nil
                        (lambda ()
-                         (when autonoma-test--mock-on-open
-                           (funcall autonoma-test--mock-on-open ws))))
-        (when autonoma-test--mock-on-open
-          (funcall autonoma-test--mock-on-open ws))))
+                         (when a6s-test--mock-on-open
+                           (funcall a6s-test--mock-on-open ws))))
+        (when a6s-test--mock-on-open
+          (funcall a6s-test--mock-on-open ws))))
     ws))
 
-(defun autonoma-test--mock-send (_ws text)
+(defun a6s-test--mock-send (_ws text)
   "Record TEXT sent via mock websocket."
-  (push text autonoma-test--mock-sent-messages))
+  (push text a6s-test--mock-sent-messages))
 
-(defun autonoma-test--mock-close (_ws)
+(defun a6s-test--mock-close (_ws)
   "Mocked close."
-  (when autonoma-test--mock-on-close
-    (funcall autonoma-test--mock-on-close autonoma-test--mock-ws)))
+  (when a6s-test--mock-on-close
+    (funcall a6s-test--mock-on-close a6s-test--mock-ws)))
 
-(defun autonoma-test--deliver-frame (message)
+(defun a6s-test--deliver-frame (message)
   "Deliver MESSAGE (an elisp object) to the client as a WebSocket frame."
   (let* ((json (json-encode message))
          (frame (make-websocket-frame :opcode 'text :payload json)))
-    (funcall autonoma-test--mock-on-message autonoma-test--mock-ws frame)))
+    (funcall a6s-test--mock-on-message a6s-test--mock-ws frame)))
 
-(defun autonoma-test--last-sent-method ()
+(defun a6s-test--last-sent-method ()
   "Parse the last sent JSON frame and return its method, or nil if none."
-  (when autonoma-test--mock-sent-messages
+  (when a6s-test--mock-sent-messages
     (let ((json-object-type 'plist) (json-key-type 'keyword)
           (json-array-type 'list))
-      (plist-get (json-read-from-string (car autonoma-test--mock-sent-messages))
+      (plist-get (json-read-from-string (car a6s-test--mock-sent-messages))
                  :method))))
 
-(defun autonoma-test--last-sent-id ()
+(defun a6s-test--last-sent-id ()
   "Parse the last sent JSON frame and return its id, or nil if none."
-  (when autonoma-test--mock-sent-messages
+  (when a6s-test--mock-sent-messages
     (let ((json-object-type 'plist) (json-key-type 'keyword)
           (json-array-type 'list))
-      (plist-get (json-read-from-string (car autonoma-test--mock-sent-messages))
+      (plist-get (json-read-from-string (car a6s-test--mock-sent-messages))
                  :id))))
 
-(defun autonoma-test--last-sent-params ()
+(defun a6s-test--last-sent-params ()
   "Parse the last sent JSON frame and return its params, or nil if none."
-  (when autonoma-test--mock-sent-messages
+  (when a6s-test--mock-sent-messages
     (let ((json-object-type 'plist) (json-key-type 'keyword)
           (json-array-type 'list))
-      (plist-get (json-read-from-string (car autonoma-test--mock-sent-messages))
+      (plist-get (json-read-from-string (car a6s-test--mock-sent-messages))
                  :params))))
 
-(defun autonoma-test--reset-state ()
-  "Reset all Autonoma client state between tests."
-  (setq autonoma-api--ws nil
-        autonoma-api--connected nil
-        autonoma-api--connecting nil
-        autonoma-api--request-counter 0
-        autonoma-api--reconnect-attempts 0
-        autonoma-api--reconnect-timer nil
-        autonoma-api--status 'disconnected
-        autonoma-test--mock-sent-messages nil
-        autonoma-test--mock-fail-open nil
-        autonoma-test--mock-open-delay 0
-        autonoma-ui--current-execution-id nil
-        autonoma-ui--phase-state nil
-        autonoma-ui--tasks nil
-        autonoma-ui--pending-artifacts nil)
-  (clrhash autonoma-api--pending-requests)
-  (clrhash autonoma-api--event-handlers))
+(defun a6s-test--reset-state ()
+  "Reset all A6s client state between tests."
+  (setq a6s-api--ws nil
+        a6s-api--connected nil
+        a6s-api--connecting nil
+        a6s-api--request-counter 0
+        a6s-api--reconnect-attempts 0
+        a6s-api--reconnect-timer nil
+        a6s-api--status 'disconnected
+        a6s-test--mock-sent-messages nil
+        a6s-test--mock-fail-open nil
+        a6s-test--mock-open-delay 0
+        a6s-ui--current-execution-id nil
+        a6s-ui--phase-state nil
+        a6s-ui--tasks nil
+        a6s-ui--pending-artifacts nil)
+  (clrhash a6s-api--pending-requests)
+  (clrhash a6s-api--event-handlers))
 
-(defmacro autonoma-test-with-connection (&rest body)
+(defmacro a6s-test-with-connection (&rest body)
   "Install mocks, connect, run BODY, then clean up."
   `(unwind-protect
        (progn
-         (autonoma-test--install-mocks)
-         (autonoma-test--reset-state)
+         (a6s-test--install-mocks)
+         (a6s-test--reset-state)
          (let (connect-ok)
-           (autonoma-api-connect (lambda (ok _err) (setq connect-ok ok)))
+           (a6s-api-connect (lambda (ok _err) (setq connect-ok ok)))
            (should connect-ok))
          ,@body)
-     (autonoma-test--uninstall-mocks)
-     (autonoma-test--reset-state)))
+     (a6s-test--uninstall-mocks)
+     (a6s-test--reset-state)))
 
 (provide 'test-helper)
 

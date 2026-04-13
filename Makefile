@@ -1,14 +1,14 @@
-# Makefile for autonoma.el — Autonoma Code extension for Emacs
+# Makefile for a6s.el — A6s extension for Emacs
 
 EMACS ?= emacs
 CASK ?= cask
 BATCH = $(EMACS) -Q --batch
 
-PACKAGE_NAME = autonoma
+PACKAGE_NAME = a6s
 PACKAGE_VERSION = 1.0.0
 
-ELISP_FILES = autonoma.el autonoma-api.el autonoma-ui.el autonoma-commands.el
-TEST_FILES = test/autonoma-api-test.el test/autonoma-commands-test.el test/autonoma-ui-test.el test/test-helper.el
+ELISP_FILES = a6s.el a6s-api.el a6s-ui.el a6s-commands.el a6s-compat.el
+TEST_FILES = test/a6s-api-test.el test/a6s-commands-test.el test/a6s-ui-test.el test/test-helper.el
 
 .PHONY: all clean compile test lint package install coverage help
 
@@ -33,22 +33,22 @@ lint:
 		--eval "(package-initialize)" \
 		--eval "(unless package-archive-contents (package-refresh-contents))" \
 		--eval "(require 'package-lint)" \
-		-f package-lint-batch-and-exit autonoma.el
+		-f package-lint-batch-and-exit a6s.el
 	$(CASK) exec $(BATCH) -L . \
 		--eval "(setq checkdoc-arguments-in-order-flag nil)" \
-		--eval "(checkdoc-file \"autonoma.el\")" \
-		--eval "(checkdoc-file \"autonoma-api.el\")" \
-		--eval "(checkdoc-file \"autonoma-ui.el\")" \
-		--eval "(checkdoc-file \"autonoma-commands.el\")"
+		--eval "(checkdoc-file \"a6s.el\")" \
+		--eval "(checkdoc-file \"a6s-api.el\")" \
+		--eval "(checkdoc-file \"a6s-ui.el\")" \
+		--eval "(checkdoc-file \"a6s-commands.el\")"
 
 # Run ERT tests with undercover coverage
 test:
 	UNDERCOVER_CONFIG='("*.el" (:report-format :text) (:send-report nil))' \
 	$(CASK) exec $(BATCH) -L . -L test \
 		-l test/test-helper.el \
-		-l test/autonoma-api-test.el \
-		-l test/autonoma-commands-test.el \
-		-l test/autonoma-ui-test.el \
+		-l test/a6s-api-test.el \
+		-l test/a6s-commands-test.el \
+		-l test/a6s-ui-test.el \
 		-f ert-run-tests-batch-and-exit
 
 # Coverage report (threshold enforced in test-helper.el)

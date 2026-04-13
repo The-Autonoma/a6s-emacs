@@ -1,9 +1,9 @@
 (source gnu)
 (source melpa)
 
-(package-file "autonoma.el")
+(package-file "a6s.el")
 
-(files "autonoma.el" "autonoma-api.el" "autonoma-ui.el" "autonoma-commands.el")
+(files "a6s.el" "a6s-api.el" "a6s-ui.el" "a6s-commands.el" "a6s-compat.el")
 
 (depends-on "emacs" "27.1")
 (depends-on "websocket" "1.14")
