@@ -8,7 +8,7 @@
 
 ;; WebSocket client for communicating with the local A6s CLI daemon
 ;; at ws://localhost:9876/ws.  Implements all 13 daemon protocol methods
-;; from https://www.theautonoma.io/docs/build/cli/daemon, event subscription, timeouts,
+;; from tools/cli/docs/DAEMON-PROTOCOL.md, event subscription, timeouts,
 ;; and reconnect-with-backoff.
 ;;
 ;; The client is the ONLY component that talks to the daemon.  All user-
@@ -324,7 +324,7 @@ CALLBACK, if provided, is called with (ok-p error-message)."
       (signal 'a6s-api-error (list ret-error)))
     ret-result))
 
-;;; Public API methods (all 13 from Autonoma Daemon Protocol v1.0)
+;;; Public API methods
 
 (defun a6s-api-agents-list (callback)
   "Asynchronously list agents; CALLBACK receives (agents err)."
@@ -418,6 +418,61 @@ CALLBACK receives (result err) where result contains :executionId."
     (a6s-api--send-request
      "code.review"
      (list :code c :language l :filePath p :reviewType r) callback)))
+
+(defun a6s-api-workflows-list (callback &optional domain)
+  "List available workflow templates; CALLBACK receives (workflows err).
+Optional DOMAIN string filters results to a single domain."
+  (let ((params (if (and domain (not (string-empty-p domain)))
+                    (list :domain domain)
+                  nil)))
+    (a6s-api--send-request "workflows.list" params callback)))
+
+(defun a6s-api-workflow-run (workflow-id callback &optional input priority)
+  "Run workflow WORKFLOW-ID; CALLBACK receives (executionId err).
+Optional INPUT plist and PRIORITY string (\"low\", \"normal\", \"high\")."
+  (let* ((wid (a6s-api--validate-string workflow-id "workflowId"))
+         (params (list :workflowId wid)))
+    (when input
+      (setq params (append params (list :input input))))
+    (when (and priority (not (string-empty-p priority)))
+      (setq params (append params (list :priority priority))))
+    (a6s-api--send-request "workflows.run" params callback)))
+
+(defun a6s-api-workflow-status (execution-id callback)
+  "Get status of workflow execution EXECUTION-ID; CALLBACK receives (result err)."
+  (let ((id (a6s-api--validate-string execution-id "executionId")))
+    (a6s-api--send-request
+     "workflows.status" (list :executionId id) callback)))
+
+(defun a6s-api-workflow-cancel (execution-id callback)
+  "Cancel workflow execution EXECUTION-ID; CALLBACK receives (result err)."
+  (let ((id (a6s-api--validate-string execution-id "executionId")))
+    (a6s-api--send-request
+     "workflows.cancel" (list :executionId id) callback)))
+
+(defun a6s-api-fleet-list (callback &optional capability)
+  "List fleet agents; CALLBACK receives (agents err).
+Optional CAPABILITY string filters to a single capability group."
+  (let ((params (if (and capability (not (string-empty-p capability)))
+                    (list :capability capability)
+                  nil)))
+    (a6s-api--send-request "fleet.list" params callback)))
+
+(defun a6s-api-fleet-status (callback)
+  "Get fleet-wide status summary; CALLBACK receives (status err)."
+  (a6s-api--send-request "fleet.status" nil callback))
+
+(defun a6s-api-fleet-command (target capability agent-type command callback)
+  "Send COMMAND to fleet agent TARGET (CAPABILITY/AGENT-TYPE).
+CALLBACK receives (executionId err)."
+  (let ((tgt (a6s-api--validate-string target "target"))
+        (cap (a6s-api--validate-string capability "capability"))
+        (at  (a6s-api--validate-string agent-type "agentType"))
+        (cmd (a6s-api--validate-string command "command")))
+    (a6s-api--send-request
+     "fleet.command"
+     (list :target tgt :capability cap :agentType at :command cmd)
+     callback)))
 
 (provide 'a6s-api)
 

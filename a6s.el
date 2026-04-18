@@ -2,11 +2,11 @@
 
 ;; Copyright (C) 2026 Autonoma AI
 
-;; Author: Autonoma Team <support@theautonoma.io>
-;; Version: 1.0.0
+;; Author: Autonoma Team <support@autonoma.ai>
+;; Version: 2.0.0
 ;; Package-Requires: ((emacs "27.1") (websocket "1.14") (transient "0.4.0"))
 ;; Keywords: tools, convenience
-;; URL: https://github.com/The-Autonoma/a6s-emacs
+;; URL: https://github.com/The-Autonoma/autonoma-emacs
 
 ;; This file is not part of GNU Emacs.
 
@@ -30,7 +30,7 @@
 ;; Then open any buffer and run M-x a6s-mode, or bind a global key to
 ;; `a6s-transient' (default: C-c C-a when a6s-mode is active).
 ;;
-;; See https://www.theautonoma.io/docs/build/cli/daemon for protocol and bootstrap
+;; See CLAUDE.md for architecture, protocol conformance, and installation
 ;; instructions.
 
 ;;; Code:
@@ -133,6 +133,8 @@ Sets up autoloads and prompts for telemetry preference on first run."
 (autoload 'a6s-status "a6s-commands" "Show A6s connection status." t)
 ;;;###autoload
 (autoload 'a6s-transient "a6s-ui" "Open A6s transient menu." t)
+
+(require 'a6s-compat)
 
 (provide 'a6s)
 
