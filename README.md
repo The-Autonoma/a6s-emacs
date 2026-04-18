@@ -1,7 +1,6 @@
-# autonoma.el — A6s for Emacs
+# a6s.el — A6s for Emacs
 
-[![MELPA](https://melpa.org/packages/autonoma-badge.svg)](https://melpa.org/#/autonoma)
-[![Test](https://github.com/The-Autonoma/autonoma-emacs/workflows/test/badge.svg)](https://github.com/The-Autonoma/autonoma-emacs/actions)
+[![Test](https://github.com/The-Autonoma/a6s-emacs/workflows/CI/badge.svg)](https://github.com/The-Autonoma/a6s-emacs/actions)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE)
 
 Intelligent multi-agent orchestration inside Emacs. Invoke A6s RIGOR
@@ -15,36 +14,25 @@ that talks to the remote orchestrator.
 
 ## Install
 
-### MELPA
-
-```elisp
-(use-package autonoma
-  :ensure t
-  :hook (prog-mode . autonoma-mode)
-  :custom
-  (autonoma-daemon-port 9876)
-  (autonoma-auto-connect t))
-```
-
 ### straight.el
 
 ```elisp
 (straight-use-package
- '(autonoma :type git :host github :repo "The-Autonoma/autonoma-emacs"
-            :files (:defaults)))
-(autonoma-setup)
+ '(a6s :type git :host github :repo "The-Autonoma/a6s-emacs"
+       :files (:defaults)))
+(a6s-setup)
 ```
 
 ### Manual
 
 ```sh
-git clone https://github.com/The-Autonoma/autonoma-emacs.git ~/.emacs.d/autonoma
+git clone https://github.com/The-Autonoma/a6s-emacs.git ~/.emacs.d/a6s
 ```
 
 ```elisp
-(add-to-list 'load-path "~/.emacs.d/autonoma")
-(require 'autonoma)
-(autonoma-setup)
+(add-to-list 'load-path "~/.emacs.d/a6s")
+(require 'a6s)
+(a6s-setup)
 ```
 
 ## Prerequisites
@@ -62,7 +50,7 @@ git clone https://github.com/The-Autonoma/autonoma-emacs.git ~/.emacs.d/autonoma
 
 2. Enable the minor mode in any buffer:
    ```
-   M-x autonoma-mode
+   M-x a6s-mode
    ```
 
 3. Open the transient menu with `C-c C-a`, then:
@@ -80,18 +68,18 @@ git clone https://github.com/The-Autonoma/autonoma-emacs.git ~/.emacs.d/autonoma
 
 ## Customization
 
-All options live in the `autonoma` customize group.
+All options live in the `a6s` customize group.
 
 | Variable | Default | Description |
 |---|---|---|
-| `autonoma-daemon-port` | `9876` | Daemon WebSocket port |
-| `autonoma-daemon-host` | `"localhost"` | Daemon host (leave default) |
-| `autonoma-auto-connect` | `t` | Connect when `autonoma-mode` enables |
-| `autonoma-telemetry-enabled` | `nil` | Opt-in, prompted on first use |
-| `autonoma-request-timeout` | `30` | Per-request timeout (seconds) |
-| `autonoma-connect-timeout` | `5` | Connect timeout (seconds) |
-| `autonoma-max-input-length` | `10000` | Max user input (characters) |
-| `autonoma-max-reconnect-attempts` | `5` | Exponential-backoff cap |
+| `a6s-daemon-port` | `9876` | Daemon WebSocket port |
+| `a6s-daemon-host` | `"localhost"` | Daemon host (leave default) |
+| `a6s-auto-connect` | `t` | Connect when `a6s-mode` enables |
+| `a6s-telemetry-enabled` | `nil` | Opt-in, prompted on first use |
+| `a6s-request-timeout` | `30` | Per-request timeout (seconds) |
+| `a6s-connect-timeout` | `5` | Connect timeout (seconds) |
+| `a6s-max-input-length` | `10000` | Max user input (characters) |
+| `a6s-max-reconnect-attempts` | `5` | Exponential-backoff cap |
 
 ## Security
 
@@ -111,8 +99,8 @@ All options live in the `autonoma` customize group.
 ```
 
 The extension implements the
-[Autonoma Daemon Protocol v1.0](https://www.theautonoma.io/docs/build/cli/daemon)
-(13 RPC methods, 3 event streams).
+[A6s Daemon Protocol v2.0](https://www.theautonoma.io/docs/build/cli/daemon)
+(20 RPC methods, 3 event streams), including fleet management and workflow orchestration.
 
 ## Development
 
@@ -126,7 +114,7 @@ make test      # ERT + undercover coverage (fails below 80%)
 ## Contributing
 
 Bug reports and pull requests are welcome at
-[The-Autonoma/autonoma-emacs](https://github.com/The-Autonoma/autonoma-emacs/issues).
+[The-Autonoma/a6s-emacs](https://github.com/The-Autonoma/a6s-emacs/issues).
 
 ## License
 
