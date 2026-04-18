@@ -83,8 +83,8 @@
 ;;; Agent invocation
 
 ;;;###autoload
-(defun a6s-invoke-agent (agent task)
-  "Invoke AGENT with TASK (both prompted interactively)."
+(defun a6s-invoke-agent (chosen-agent chosen-task)
+  "Invoke CHOSEN-AGENT with CHOSEN-TASK (both prompted interactively)."
   (interactive
    (progn
      (a6s-commands--ensure-connected)
@@ -97,18 +97,18 @@
                               "govern-ai" "policy-ai" "tenant-ai"
                               "optimize-ai" "cost-ai" "dba-ai"
                               "billing-ai" "adapt-ai" "evolve-ai"
-                              "success-ai"))))
-            (agent (completing-read "Agent: " agents nil nil))
-            (task (read-string "Task: ")))
-       (list agent task))))
+                              "success-ai")))
+            (ag (completing-read "Agent: " agents nil nil))
+            (tk (read-string "Task: ")))
+       (list ag tk))))
   (a6s-commands--ensure-connected)
   (a6s-api-agents-invoke
-   agent task nil
+   chosen-agent chosen-task nil
    (lambda (result err)
      (if err
          (message "[a6s] invoke failed: %s" err)
        (let ((exec-id (plist-get result :executionId)))
-         (message "[a6s] invoked %s: execution=%s" agent exec-id))))))
+         (message "[a6s] invoked %s: execution=%s" chosen-agent exec-id))))))
 
 ;;; Code commands
 
