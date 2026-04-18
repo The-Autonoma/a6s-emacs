@@ -89,8 +89,15 @@
    (progn
      (a6s-commands--ensure-connected)
      (let* ((agents (or a6s-commands--known-agents
-                        (list "architect-ai" "coder-ai" "tester-ai"
-                              "reviewer-ai" "req-ai")))
+                        (list "req-ai" "planner-ai" "architect-ai"
+                              "coder-ai" "tester-ai" "debug-ai"
+                              "review-ai" "deploy-ai" "maintain-ai"
+                              "observe-ai" "incident-ai" "capacity-ai"
+                              "backup-ai" "security-ai" "threathunter-ai"
+                              "govern-ai" "policy-ai" "tenant-ai"
+                              "optimize-ai" "cost-ai" "dba-ai"
+                              "billing-ai" "adapt-ai" "evolve-ai"
+                              "success-ai"))))
             (agent (completing-read "Agent: " agents nil nil))
             (task (read-string "Task: ")))
        (list agent task))))
@@ -312,8 +319,15 @@
    (progn
      (a6s-commands--ensure-connected)
      (let* ((agents (or a6s-commands--known-agents
-                        (list "architect-ai" "coder-ai" "tester-ai"
-                              "reviewer-ai" "req-ai")))
+                        (list "req-ai" "planner-ai" "architect-ai"
+                              "coder-ai" "tester-ai" "debug-ai"
+                              "review-ai" "deploy-ai" "maintain-ai"
+                              "observe-ai" "incident-ai" "capacity-ai"
+                              "backup-ai" "security-ai" "threathunter-ai"
+                              "govern-ai" "policy-ai" "tenant-ai"
+                              "optimize-ai" "cost-ai" "dba-ai"
+                              "billing-ai" "adapt-ai" "evolve-ai"
+                              "success-ai"))))
             (agent (completing-read "Agent: " agents nil nil))
             (task (read-string "Task: ")))
        (list agent task))))
@@ -344,6 +358,167 @@
              (goto-char (point-min)))
            (special-mode))
          (display-buffer buf))))))
+
+;;; Fleet commands
+
+;;;###autoload
+(defun a6s-fleet-list (&optional capability)
+  "Fetch and display all fleet agents in the *A6s Fleet* buffer.
+With a prefix argument, prompt for a CAPABILITY group to filter by."
+  (interactive
+   (list (when current-prefix-arg
+           (let ((cap (read-string "Capability group (leave empty for all): ")))
+             (if (string-empty-p (string-trim cap)) nil (string-trim cap))))))
+  (a6s-commands--ensure-connected)
+  (a6s-api-fleet-list
+   (lambda (agents err)
+     (if err
+         (message "[a6s] fleet-list failed: %s" err)
+       (let ((buf (get-buffer-create "*A6s Fleet*")))
+         (with-current-buffer buf
+           (let ((inhibit-read-only t))
+             (erase-buffer)
+             (insert (propertize "A6s Fleet Agents\n" 'face 'a6s-ui-header))
+             (insert (make-string 72 ?-) "\n")
+             (dolist (agent agents)
+               (insert (format "  %-16s %-12s %-10s %s\n"
+                               (or (plist-get agent :name) "?")
+                               (or (plist-get agent :capability) "?")
+                               (or (plist-get agent :status) "?")
+                               (or (plist-get agent :region) ""))))
+             (goto-char (point-min)))
+           (special-mode))
+         (display-buffer buf))))
+   capability))
+
+;;;###autoload
+(defun a6s-fleet-status ()
+  "Fetch and display fleet-wide status summary in the *A6s Fleet Status* buffer."
+  (interactive)
+  (a6s-commands--ensure-connected)
+  (a6s-api-fleet-status
+   (lambda (status err)
+     (if err
+         (message "[a6s] fleet-status failed: %s" err)
+       (let ((buf (get-buffer-create "*A6s Fleet Status*")))
+         (with-current-buffer buf
+           (let ((inhibit-read-only t))
+             (erase-buffer)
+             (insert (propertize "A6s Fleet Status\n" 'face 'a6s-ui-header))
+             (insert (make-string 40 ?-) "\n")
+             (insert (format "  Total    : %s\n" (or (plist-get status :total) 0)))
+             (insert (format "  Available: %s\n" (or (plist-get status :available) 0)))
+             (insert (format "  Busy     : %s\n" (or (plist-get status :busy) 0)))
+             (insert (format "  Offline  : %s\n" (or (plist-get status :offline) 0)))
+             (let ((by-cap (plist-get status :byCapability)))
+               (when by-cap
+                 (insert "\nBy Capability:\n")
+                 (cl-loop for (cap info) on by-cap by #'cddr
+                          do (insert (format "  %-12s total=%-4s available=%s\n"
+                                             cap
+                                             (or (plist-get info :total) 0)
+                                             (or (plist-get info :available) 0))))))
+             (goto-char (point-min)))
+           (special-mode))
+         (display-buffer buf))))))
+
+;;;###autoload
+(defun a6s-fleet-command (target capability agent-type command)
+  "Send COMMAND to fleet agent TARGET via CAPABILITY and AGENT-TYPE."
+  (interactive
+   (progn
+     (a6s-commands--ensure-connected)
+     (list (read-string "Target: ")
+           (completing-read "Capability: "
+                            '("BUILD" "OPERATE" "SECURE" "GOVERN" "OPTIMIZE" "EVOLVE")
+                            nil t)
+           (read-string "Agent type: ")
+           (read-string "Command: "))))
+  (a6s-commands--ensure-connected)
+  (a6s-api-fleet-command
+   target capability agent-type command
+   (lambda (result err)
+     (if err
+         (message "[a6s] fleet-command failed: %s" err)
+       (message "[a6s] fleet command dispatched: execution=%s"
+                (or (plist-get result :executionId) "?"))))))
+
+;;; Workflow commands
+
+;;;###autoload
+(defun a6s-workflow-list (&optional domain)
+  "Fetch and display available workflow templates in the *A6s Workflows* buffer.
+With a prefix argument, prompt for a DOMAIN to filter by."
+  (interactive
+   (list (when current-prefix-arg
+           (let ((d (read-string "Domain (leave empty for all): ")))
+             (if (string-empty-p (string-trim d)) nil (string-trim d))))))
+  (a6s-commands--ensure-connected)
+  (a6s-api-workflows-list
+   (lambda (workflows err)
+     (if err
+         (message "[a6s] workflow-list failed: %s" err)
+       (let ((buf (get-buffer-create "*A6s Workflows*")))
+         (with-current-buffer buf
+           (let ((inhibit-read-only t))
+             (erase-buffer)
+             (insert (propertize "A6s Workflow Templates\n" 'face 'a6s-ui-header))
+             (insert (make-string 72 ?-) "\n")
+             (dolist (wf workflows)
+               (insert (format "  %-30s %-12s steps=%-3s %s\n"
+                               (or (plist-get wf :id) "?")
+                               (or (plist-get wf :pattern) "?")
+                               (or (plist-get wf :stepCount) "?")
+                               (or (plist-get wf :description) ""))))
+             (goto-char (point-min)))
+           (special-mode))
+         (display-buffer buf))))
+   domain))
+
+;;;###autoload
+(defun a6s-workflow-run (workflow-id)
+  "Prompt for WORKFLOW-ID and run the workflow."
+  (interactive
+   (progn
+     (a6s-commands--ensure-connected)
+     (list (read-string "Workflow id: "))))
+  (a6s-commands--ensure-connected)
+  (a6s-api-workflow-run
+   workflow-id
+   (lambda (result err)
+     (if err
+         (message "[a6s] workflow-run failed: %s" err)
+       (message "[a6s] workflow started: execution=%s"
+                (or (plist-get result :executionId) "?"))))
+   nil nil))
+
+;;;###autoload
+(defun a6s-workflow-status (execution-id)
+  "Prompt for EXECUTION-ID and display current workflow execution status."
+  (interactive "sWorkflow execution id: ")
+  (a6s-commands--ensure-connected)
+  (a6s-api-workflow-status
+   execution-id
+   (lambda (result err)
+     (if err
+         (message "[a6s] workflow-status failed: %s" err)
+       (message "[a6s] workflow=%s status=%s progress=%s%%"
+                (or (plist-get result :workflowId) "?")
+                (or (plist-get result :status) "?")
+                (or (plist-get result :progress) "?"))))))
+
+;;;###autoload
+(defun a6s-workflow-cancel (execution-id)
+  "Prompt for EXECUTION-ID and cancel the running workflow."
+  (interactive "sWorkflow execution id: ")
+  (a6s-commands--ensure-connected)
+  (when (yes-or-no-p (format "Cancel workflow execution %s? " execution-id))
+    (a6s-api-workflow-cancel
+     execution-id
+     (lambda (_result err)
+       (if err
+           (message "[a6s] workflow-cancel failed: %s" err)
+         (message "[a6s] workflow cancelled: %s" execution-id))))))
 
 (provide 'a6s-commands)
 
