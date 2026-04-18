@@ -313,8 +313,8 @@
                 (or (plist-get result :progress) "?"))))))
 
 ;;;###autoload
-(defun a6s-background-launch (agent task)
-  "Launch a background TASK under AGENT."
+(defun a6s-background-launch (chosen-agent chosen-task)
+  "Launch a background CHOSEN-TASK under CHOSEN-AGENT."
   (interactive
    (progn
      (a6s-commands--ensure-connected)
@@ -327,13 +327,13 @@
                               "govern-ai" "policy-ai" "tenant-ai"
                               "optimize-ai" "cost-ai" "dba-ai"
                               "billing-ai" "adapt-ai" "evolve-ai"
-                              "success-ai"))))
-            (agent (completing-read "Agent: " agents nil nil))
-            (task (read-string "Task: ")))
-       (list agent task))))
+                              "success-ai")))
+            (ag (completing-read "Agent: " agents nil nil))
+            (tk (read-string "Task: ")))
+       (list ag tk))))
   (a6s-commands--ensure-connected)
   (a6s-api-background-launch
-   task agent
+   chosen-task chosen-agent
    (lambda (result err)
      (if err
          (message "[a6s] background-launch failed: %s" err)
