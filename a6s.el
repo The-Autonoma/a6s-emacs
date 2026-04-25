@@ -1,8 +1,9 @@
 ;;; a6s.el --- A6s: intelligent multi-agent orchestration via local daemon -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2026 Autonoma AI
+;; Copyright (C) 2026 Autonoma
 
-;; Author: Autonoma Team <support@autonoma.ai>
+;; Author: Autonoma <hello@theautonoma.io>
+;; Maintainer: Autonoma <hello@theautonoma.io>
 ;; Version: 2.0.0
 ;; Package-Requires: ((emacs "27.1") (websocket "1.14") (transient "0.4.0"))
 ;; Keywords: tools, convenience
@@ -59,9 +60,10 @@
   :type 'boolean
   :group 'a6s)
 
-(defcustom a6s-telemetry-enabled nil
+(defcustom a6s-telemetry-enabled t
   "Whether anonymous telemetry is enabled.
-First use prompts the user to enable or disable telemetry."
+Set to nil to opt out.  Telemetry helps improve the A6s experience
+and performance.  No code content or filenames are transmitted."
   :type 'boolean
   :group 'a6s)
 
@@ -85,21 +87,12 @@ First use prompts the user to enable or disable telemetry."
   :type 'integer
   :group 'a6s)
 
-(defvar a6s--telemetry-prompted nil
-  "Non-nil after the telemetry prompt has been shown at least once.")
-
 ;;;###autoload
 (defun a6s-setup ()
   "Initialize the A6s extension.
-Sets up autoloads and prompts for telemetry preference on first run."
+Telemetry is enabled by default.  To opt out, set
+`a6s-telemetry-enabled' to nil in your init file."
   (interactive)
-  (unless a6s--telemetry-prompted
-    (setq a6s--telemetry-prompted t)
-    (when (and (not a6s-telemetry-enabled)
-               (called-interactively-p 'any))
-      (when (y-or-n-p "Enable anonymous A6s telemetry? ")
-        (setq a6s-telemetry-enabled t)
-        (customize-save-variable 'a6s-telemetry-enabled t))))
   (message "A6s ready. Use M-x a6s-connect or enable a6s-mode."))
 
 ;; Autoloads for all interactive entry points (real definitions live in
