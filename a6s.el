@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 2026 Autonoma
 
-;; Author: Autonoma <hello@theautonoma.io>
-;; Maintainer: Autonoma <hello@theautonoma.io>
+;; Author: Autonoma <support@theautonoma.io>
+;; Maintainer: Autonoma <support@theautonoma.io>
 ;; Version: 2.0.0
 ;; Package-Requires: ((emacs "27.1") (websocket "1.14") (transient "0.4.0"))
 ;; Keywords: tools, convenience
