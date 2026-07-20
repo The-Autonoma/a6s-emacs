@@ -38,7 +38,7 @@ git clone https://github.com/The-Autonoma/a6s-emacs.git ~/.emacs.d/a6s
 ## Prerequisites
 
 - Emacs 27.1 or newer
-- The A6s CLI running as a daemon: `a6s code --daemon`
+- Node 18+ and the A6s CLI: `npm install -g @autonoma-io/a6s && a6s code --daemon`
 - Packages: `websocket` 1.14+, `transient` 0.4+
 
 ## Quick start

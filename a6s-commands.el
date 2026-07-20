@@ -151,6 +151,53 @@
          (a6s-ui-show-results result))))))
 
 ;;;###autoload
+(defun a6s-tech-debt-scan (repository-url)
+  "Enqueue a tech-debt scan for REPOSITORY-URL."
+  (interactive "sRepository URL: ")
+  (a6s-commands--ensure-connected)
+  (a6s-api-tech-debt-scan
+   repository-url
+   (lambda (result err)
+     (if err
+         (message "[a6s] tech-debt scan failed: %s" err)
+       (message "[a6s] tech-debt scan queued: %s (poll with M-x a6s-scan-status)"
+                (plist-get result :job_id))))))
+
+(defun a6s-modernize-scan (repository-url)
+  "Enqueue a modernization scan for REPOSITORY-URL."
+  (interactive "sRepository URL: ")
+  (a6s-commands--ensure-connected)
+  (a6s-api-modernize-scan
+   repository-url
+   (lambda (result err)
+     (if err
+         (message "[a6s] modernization scan failed: %s" err)
+       (message "[a6s] modernization scan queued: %s"
+                (plist-get result :job_id))))))
+
+(defun a6s-scan-status (job-id)
+  "Show the status (and findings report once done) of scan JOB-ID."
+  (interactive "sScan job id: ")
+  (a6s-commands--ensure-connected)
+  (a6s-api-scan-status
+   job-id
+   (lambda (result err)
+     (if err
+         (message "[a6s] scan status failed: %s" err)
+       (let ((report (plist-get result :report)))
+         (if report
+             (let ((buf (get-buffer-create "*A6s Scan Report*")))
+               (with-current-buffer buf
+                 (let ((inhibit-read-only t))
+                   (erase-buffer)
+                   (insert (format "%S" report))
+                   (goto-char (point-min)))
+                 (special-mode))
+               (pop-to-buffer buf))
+           (message "[a6s] scan %s: %s"
+                    (plist-get result :job_id)
+                    (plist-get result :status))))))))
+
 (defun a6s-review-region (review-type)
   "Review region with REVIEW-TYPE (security, performance, quality, all)."
   (interactive

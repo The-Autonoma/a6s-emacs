@@ -56,6 +56,9 @@
 (defvar a6s-api--status 'disconnected
   "One of `disconnected', `connecting', or `connected'.")
 
+(defvar a6s-api--last-conversation-log-id nil
+  "conversation_log_id from the most recent logged daemon response (v2.1).")
+
 ;;; Errors
 
 (define-error 'a6s-api-error "A6s API error")
@@ -136,6 +139,11 @@
   "Route MESSAGE to either a pending request callback or event handlers."
   (let ((id (plist-get message :id))
         (type (plist-get message :type)))
+    ;; Daemon protocol v2.1: capture conversation_log_id from every logged
+    ;; response so feedback affordances have a target.
+    (let ((log-id (plist-get message :conversation_log_id)))
+      (when (and (stringp log-id) (not (string-empty-p log-id)))
+        (setq a6s-api--last-conversation-log-id log-id)))
     (cond
      ;; Response to a pending request
      ((and id (gethash id a6s-api--pending-requests))
@@ -473,6 +481,46 @@ CALLBACK receives (executionId err)."
      "fleet.command"
      (list :target tgt :capability cap :agentType at :command cmd)
      callback)))
+
+(defun a6s-api-tech-debt-scan (repository-url &optional callback)
+  "Enqueue a tech-debt scan for REPOSITORY-URL.
+CALLBACK receives (result err)."
+  (a6s-api--send-request
+   "scan.techDebt"
+   (list :repository_url (a6s-api--validate-string repository-url "repository_url"))
+   callback))
+
+(defun a6s-api-modernize-scan (repository-url &optional callback)
+  "Enqueue a modernization scan for REPOSITORY-URL.
+CALLBACK receives (result err)."
+  (a6s-api--send-request
+   "scan.modernize"
+   (list :repository_url (a6s-api--validate-string repository-url "repository_url"))
+   callback))
+
+(defun a6s-api-scan-status (job-id &optional callback)
+  "Fetch the status (and report once done) of scan JOB-ID.
+CALLBACK receives (result err)."
+  (a6s-api--send-request
+   "scan.status"
+   (list :job_id (a6s-api--validate-string job-id "job_id"))
+   callback))
+
+(defun a6s-api-submit-feedback (conversation-log-id signal &optional reason callback)
+  "Submit accept/reject feedback for a prior conversation log row (v2.1).
+CONVERSATION-LOG-ID is the UUID surfaced via the daemon response envelope.
+SIGNAL must be the string \"accept\" or \"reject\".  REASON is optional
+free-form text.  CALLBACK receives (result err)."
+  (let* ((id (a6s-api--validate-string conversation-log-id "conversation_log_id"))
+         (sig (a6s-api--validate-string signal "signal"))
+         (params (list :conversation_log_id id :signal sig)))
+    (when (and reason (not (string-empty-p reason)))
+      (setq params (plist-put params :reason reason)))
+    (a6s-api--send-request "feedback.submit" params (or callback #'ignore))))
+
+(defun a6s-api-last-conversation-log-id ()
+  "Return the most recently captured conversation_log_id, or nil."
+  a6s-api--last-conversation-log-id)
 
 (provide 'a6s-api)
 

@@ -107,6 +107,12 @@ Telemetry is enabled by default.  To opt out, set
 ;;;###autoload
 (autoload 'a6s-invoke-agent "a6s-commands" "Invoke an A6s agent." t)
 ;;;###autoload
+(autoload 'a6s-tech-debt-scan "a6s-commands" "Enqueue a tech-debt scan." t)
+;;;###autoload
+(autoload 'a6s-modernize-scan "a6s-commands" "Enqueue a modernization scan." t)
+;;;###autoload
+(autoload 'a6s-scan-status "a6s-commands" "Check a scan job status." t)
+;;;###autoload
 (autoload 'a6s-explain-region "a6s-commands" "Explain region with A6s." t)
 ;;;###autoload
 (autoload 'a6s-refactor-region "a6s-commands" "Refactor region with A6s." t)
