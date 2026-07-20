@@ -65,6 +65,9 @@ git clone https://github.com/The-Autonoma/a6s-emacs.git ~/.emacs.d/a6s
    | `t` | Generate tests for region |
    | `p` / `A` | Preview / Apply pending artifacts |
    | `l` / `x` | List tasks / Cancel task |
+   | `T` | `a6s-tech-debt-scan` — prompt for repo URL, enqueue async scan (returns job id) |
+   | `M` | `a6s-modernize-scan` — prompt for repo URL, enqueue async scan (returns job id) |
+   | `S` | `a6s-scan-status` — prompt for job id, poll and open the findings report |
 
 ## Customization
 
