@@ -1,0 +1,15 @@
+name: Stub Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  stub-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Stub check (no stub markers / not-implemented signals)
+        run: bash .github/scripts/stub-check.sh
